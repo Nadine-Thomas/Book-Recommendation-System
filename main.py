@@ -13,7 +13,7 @@ import gc
 # --- DATABASE CONNECTION CONFIGURATION ---
 DB_CONFIG = {
     'user': 'root',
-    'password': 'Bandit409023!',
+    'password': '',
     'host': 'localhost', 
     'port': '3305',
     'database': 'book_reviews'
