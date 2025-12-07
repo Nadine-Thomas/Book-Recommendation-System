@@ -4,6 +4,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from collections import defaultdict
 import re
 from sqlalchemy import create_engine, text
+import pickle
+import os
 
 
 class BookRecommendationSystem:
@@ -17,6 +19,43 @@ class BookRecommendationSystem:
         self.book_profiles = None
         self.similarity_matrix = None
         self.tfidf_vectorizer = None
+        self.cache_file = 'book_recommender_cache.pkl'
+
+    def save_cache(self):
+        """Save processed data to cache file"""
+        print(f"\nSaving processed data to {self.cache_file}...")
+        cache_data = {
+            'books_df': self.books_df,
+            'reviews_df': self.reviews_df,
+            'book_profiles': self.book_profiles,
+            'similarity_matrix': self.similarity_matrix,
+            'tfidf_vectorizer': self.tfidf_vectorizer
+        }
+        with open(self.cache_file, 'wb') as f:
+            pickle.dump(cache_data, f)
+        print("✓ Cache saved successfully!")
+
+    def load_cache(self):
+        """Load processed data from cache file"""
+        if not os.path.exists(self.cache_file):
+            return False
+
+        print(f"Loading cached data from {self.cache_file}...")
+        try:
+            with open(self.cache_file, 'rb') as f:
+                cache_data = pickle.load(f)
+
+            self.books_df = cache_data['books_df']
+            self.reviews_df = cache_data['reviews_df']
+            self.book_profiles = cache_data['book_profiles']
+            self.similarity_matrix = cache_data['similarity_matrix']
+            self.tfidf_vectorizer = cache_data['tfidf_vectorizer']
+
+            print(f"✓ Loaded {len(self.books_df)} books and {len(self.reviews_df)} reviews from cache")
+            return True
+        except Exception as e:
+            print(f"✗ Error loading cache: {e}")
+            return False
 
     def load_data(self, limit=10000, min_reviews=5):
         """Load books and reviews from database"""
@@ -357,7 +396,7 @@ if __name__ == "__main__":
         recommender = BookRecommendationSystem(
             host='localhost',
             user='root',
-            password='Bandit409023!',
+            password='',
             database='book_reviews',
             port=3305
         )
@@ -371,14 +410,24 @@ if __name__ == "__main__":
         print("4. Install required packages: pip install sqlalchemy mysql-connector-python")
         exit(1)
 
-    # Load data (first 10,000 books by review count, with at least 5 reviews)
-    recommender.load_data(limit=10000, min_reviews=5)
+    # Try to load from cache first
+    if recommender.load_cache():
+        print("\n✓ Using cached data - ready for recommendations!")
+    else:
+        print("No cache found. Building recommendation system...")
+        print("(This will take a few minutes, but only needs to be done once)\n")
 
-    # Create book profiles from reviews (weight positive reviews more, remove character names)
-    recommender.create_book_profiles(weight_positive_reviews=True, remove_names=True)
+        # Load data (first 10,000 books by review count, with at least 5 reviews)
+        recommender.load_data(limit=10000, min_reviews=5)
 
-    # Calculate similarities
-    recommender.calculate_similarity()
+        # Create book profiles from reviews (weight positive reviews more, remove character names)
+        recommender.create_book_profiles(weight_positive_reviews=True, remove_names=True)
+
+        # Calculate similarities
+        recommender.calculate_similarity()
+
+        # Save to cache for next time
+        recommender.save_cache()
 
     # Interactive recommendation loop
     while True:
@@ -387,12 +436,20 @@ if __name__ == "__main__":
         print("=" * 80)
         print("\nOptions:")
         print("1. Get recommendations for a book")
-        print("2. Exit")
+        print("2. Rebuild cache (re-process all data)")
+        print("3. Exit")
 
-        choice = input("\nEnter your choice (1-2): ").strip()
+        choice = input("\nEnter your choice (1-3): ").strip()
 
-        if choice == '2':
+        if choice == '3':
             break
+        elif choice == '2':
+            print("\nRebuilding recommendation system from database...")
+            recommender.load_data(limit=10000, min_reviews=5)
+            recommender.create_book_profiles(weight_positive_reviews=True, remove_names=True)
+            recommender.calculate_similarity()
+            recommender.save_cache()
+            print("\n✓ Cache rebuilt successfully!")
         elif choice == '1':
             book_title = input("\nEnter a book title (or part of it): ").strip()
 
@@ -450,7 +507,7 @@ if __name__ == "__main__":
                         for keyword, score in keywords:
                             print(f"  - {keyword}: {score:.4f}")
         else:
-            print("Invalid choice. Please enter 1 or 2.")
+            print("Invalid choice. Please enter 1, 2, or 3.")
 
     # Close connection
     print("\nThank you for using the Book Recommendation System!")
