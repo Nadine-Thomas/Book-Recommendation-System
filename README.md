@@ -32,10 +32,14 @@ This project builds a book recommendation system by combining SQL data with revi
 │   ├── main.py
 ├── models/
 │   ├── book_recommender_cache.pkl
+├── images/
+    ├── project_structure.png
+    └── er_diagram.png
 ├── README.md
 ├── user_manual.pdf
 └── developers_manual.pdf
 ```
+[!Project Structure](project_structure.png)
 
 ## Technology Stack
 **Python Libraries**
@@ -50,6 +54,8 @@ This project builds a book recommendation system by combining SQL data with revi
 **Database**
 - MySQL Community Server
 - Imported CSV datasets from kaggle.com
+- ER Diagram:
+[!ER Diagram](er_diagram.png)
 
 ## How it Works
 ### 1. Load & Clean Data
