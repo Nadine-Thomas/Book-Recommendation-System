@@ -106,4 +106,6 @@ This file connects to the SQL database and prompts the user to enter a book for 
 
 ## Documentation
 - **Developer's Manual:** detailed technical explanation of the system architecture
+  - Link: [Developer's Manual](https://github.com/Nadine-Thomas/Book-Recommendation-System/blob/main/developers_manual.pdf)
 - **User Manual:** instructions for navigating the interface and troubleshooting issues
+  - Link: [User Manual](https://github.com/Nadine-Thomas/Book-Recommendation-System/blob/main/user_manual.pdf)
